@@ -62,3 +62,6 @@ typings/
 
 dist/bundle.js
 dist/bundle.js.map
+
+.vscode/*
+!.vscode/extensions.json
