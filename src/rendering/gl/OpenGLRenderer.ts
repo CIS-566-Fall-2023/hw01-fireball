@@ -1,4 +1,4 @@
-import {mat4, vec4} from 'gl-matrix';
+import {mat4, vec2, vec4} from 'gl-matrix';
 import Drawable from './Drawable';
 import Camera from '../../Camera';
 import {gl} from '../../globals';
@@ -23,8 +23,17 @@ class OpenGLRenderer {
   }
 
   render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, time: number) {
-    prog.setEyeRefUp(camera.controls.eye, camera.controls.center, camera.controls.up);
+    let model = mat4.create();
+    let viewProj = mat4.create();
+    //let color = vec4.fromValues(controlColor[0] / 255, controlColor[1] / 255, controlColor[2] / 255, controlColor[3] / 255);
+
+    mat4.identity(model);
+    mat4.multiply(viewProj, camera.projectionMatrix, camera.viewMatrix);
+    prog.setModelMatrix(model);
+    prog.setViewProjMatrix(viewProj);
+    //prog.setGeometryColor(color);
     prog.setTime(time);
+    prog.setDimension([this.canvas.width, this.canvas.height]);
 
     for (let drawable of drawables) {
       prog.draw(drawable);
