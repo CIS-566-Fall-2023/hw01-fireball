@@ -23,12 +23,19 @@ class ShaderProgram {
 
   attrPos: number;
   attrNor: number;
+  attrCol: number;
 
-  unifRef: WebGLUniformLocation;
-  unifEye: WebGLUniformLocation;
-  unifUp: WebGLUniformLocation;
   unifDimensions: WebGLUniformLocation;
+
+  unifCameraPos: WebGLUniformLocation;
+  unifWorldOrigin: WebGLUniformLocation;
+  
+  unifModel: WebGLUniformLocation;
+  unifModelInvTr: WebGLUniformLocation;
+  unifViewProj: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
+  unifIntensity: WebGLUniformLocation;
+  unifAnger: WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -41,31 +48,28 @@ class ShaderProgram {
       throw gl.getProgramInfoLog(this.prog);
     }
 
-    this.attrPos = gl.getAttribLocation(this.prog, "vs_Pos");
-    this.unifEye   = gl.getUniformLocation(this.prog, "u_Eye");
-    this.unifRef   = gl.getUniformLocation(this.prog, "u_Ref");
-    this.unifUp   = gl.getUniformLocation(this.prog, "u_Up");
     this.unifDimensions   = gl.getUniformLocation(this.prog, "u_Dimensions");
-    this.unifTime   = gl.getUniformLocation(this.prog, "u_Time");
+
+    this.unifCameraPos       = gl.getUniformLocation(this.prog, "u_CameraPos"); 
+    this.unifWorldOrigin       = gl.getUniformLocation(this.prog, "u_WorldOrigin"); 
+
+    this.attrPos = gl.getAttribLocation(this.prog, "vs_Pos");
+    this.attrNor = gl.getAttribLocation(this.prog, "vs_Nor");
+    this.attrCol = gl.getAttribLocation(this.prog, "vs_Col");
+    this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
+    this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
+    this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
+
+    this.unifTime       = gl.getUniformLocation(this.prog, "u_Time");
+    this.unifIntensity       = gl.getUniformLocation(this.prog, "u_Intensity");
+    this.unifAnger       = gl.getUniformLocation(this.prog, "u_Anger");
+
   }
 
   use() {
     if (activeProgram !== this.prog) {
       gl.useProgram(this.prog);
       activeProgram = this.prog;
-    }
-  }
-
-  setEyeRefUp(eye: vec3, ref: vec3, up: vec3) {
-    this.use();
-    if(this.unifEye !== -1) {
-      gl.uniform3f(this.unifEye, eye[0], eye[1], eye[2]);
-    }
-    if(this.unifRef !== -1) {
-      gl.uniform3f(this.unifRef, ref[0], ref[1], ref[2]);
-    }
-    if(this.unifUp !== -1) {
-      gl.uniform3f(this.unifUp, up[0], up[1], up[2]);
     }
   }
 
@@ -76,12 +80,67 @@ class ShaderProgram {
     }
   }
 
-  setTime(t: number) {
+  setModelMatrix(model: mat4) {
     this.use();
+    if (this.unifModel !== -1) {
+      gl.uniformMatrix4fv(this.unifModel, false, model);
+    }
+
+    if (this.unifModelInvTr !== -1) {
+      let modelinvtr: mat4 = mat4.create();
+      mat4.transpose(modelinvtr, model);
+      mat4.invert(modelinvtr, modelinvtr);
+      gl.uniformMatrix4fv(this.unifModelInvTr, false, modelinvtr);
+    }
+  }
+
+  setViewProjMatrix(vp: mat4) {
+    this.use();
+    if (this.unifViewProj !== -1) {
+      gl.uniformMatrix4fv(this.unifViewProj, false, vp);
+    }
+  }
+
+  setTime(t: GLfloat) {
+    this.use()
     if(this.unifTime !== -1) {
       gl.uniform1f(this.unifTime, t);
     }
   }
+
+  setIntensity(t: GLfloat) {
+    this.use()
+    if(this.unifIntensity !== -1) {
+      gl.uniform1f(this.unifIntensity, t);
+    }
+  }
+
+  setAnger(t: GLfloat) {
+    this.use()
+    if(this.unifAnger !== -1) {
+      gl.uniform1f(this.unifAnger, t);
+    }
+  }
+
+
+  setCameraPosition(camera: vec3)
+  {
+    this.use();
+    if (this.unifCameraPos != -1) {
+      gl.uniform4fv(this.unifCameraPos, vec4.fromValues(camera[0], camera[1], camera[2], 1));
+    }
+  }
+
+  
+  setWorldOrigin(origin: vec3)
+  {
+    this.use();
+    if (this.unifWorldOrigin != -1) {
+      gl.uniform4fv(this.unifWorldOrigin, vec4.fromValues(origin[0], origin[1], origin[2], 1));
+    }
+  }
+
+
 
   draw(d: Drawable) {
     this.use();
@@ -91,10 +150,22 @@ class ShaderProgram {
       gl.vertexAttribPointer(this.attrPos, 4, gl.FLOAT, false, 0, 0);
     }
 
+    if (this.attrNor != -1 && d.bindNor()) {
+      gl.enableVertexAttribArray(this.attrNor);
+      gl.vertexAttribPointer(this.attrNor, 4, gl.FLOAT, false, 0, 0);
+    }
+
+    if (this.attrCol != -1 && d.bindCol()) {
+      gl.enableVertexAttribArray(this.attrCol);
+      gl.vertexAttribPointer(this.attrCol, 4, gl.FLOAT, false, 0, 0);
+    }
+
     d.bindIdx();
     gl.drawElements(d.drawMode(), d.elemCount(), gl.UNSIGNED_INT, 0);
 
     if (this.attrPos != -1) gl.disableVertexAttribArray(this.attrPos);
+    if (this.attrNor != -1) gl.disableVertexAttribArray(this.attrNor);
+    if (this.attrCol != -1) gl.disableVertexAttribArray(this.attrCol);
   }
 };
 
