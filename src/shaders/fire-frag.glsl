@@ -133,28 +133,12 @@ void main()
         // Calculate the diffuse term for Lambert shading
         float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
         // Remap to half-lambert shading
-        float halfLambert = (diffuseTerm + 1.) * 0.5;
+        float halfLambert = (diffuseTerm + 1.) * 0.5 * 0.4;
 
         // fixed ambient term
-        vec3 ambientTerm = vec3(10);
+        vec3 ambientTerm = vec3(.1);
 
-        // Calculate light falloff
-        float lightInvSqIntensity = 1. / dot(fs_LightVec.xyz, fs_LightVec.xyz);
-
-        // Calculate blinn-phong reflection model
-        vec3 lightDir   = normalize(fs_LightVec.xyz);
-        vec3 viewDir    = normalize(vec3(u_CamPos - fs_Pos));
-        vec3 halfwayDir = normalize(lightDir + viewDir);
-
-        float specularIntensity = pow(max(dot(fs_Nor.xyz, halfwayDir), 0.0), shininess);
-        vec3 specular = LIGHT_COLOR * specularIntensity;
-        if (dot(lightDir, fs_Nor.xyz) < -0.5) {
-          specular = vec3(0);
-        }
-
-        vec3 finalLinearColor = lightInvSqIntensity
-              * ((vec3(halfLambert * LAMBERT_INTENSITY) + ambientTerm) * diffuseColor.rgb
-                  + specular * shininess * PHONG_INTENSITY);
+        vec3 finalLinearColor = ambientTerm + halfLambert;
 
         // Compute final shaded color
         out_Col = vec4(gammaCorrect(reinhardJodie(finalLinearColor)), diffuseColor.a);

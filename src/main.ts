@@ -70,8 +70,8 @@ function main() {
   gl.enable(gl.DEPTH_TEST);
 
   const fancyShader = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fancy-frag.glsl')),
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fire-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fire-frag.glsl')),
   ]);
   fancyShader.setGeometryColor([1, 0, 0, 1]);
 

@@ -47,9 +47,6 @@ void main()
                                                             // the model matrix.
     fs_Pos = u_Model * vs_Pos;     // Temporarily store the transformed vertex positions for use below
 
-    // transform our vertices based on time!
-    fs_Pos.y += sin(u_Time + fs_Pos.x * 2. + fs_Pos.z) * 0.5 - 0.25;
-
     fs_LightVec = lightPos - fs_Pos;    // Compute the direction in which the light source lies
 
     gl_Position = u_ViewProj * fs_Pos;  // gl_Position is a built-in variable of OpenGL which is
