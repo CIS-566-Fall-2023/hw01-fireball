@@ -1,5 +1,24 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+[Live Demo](https://cryszzz.github.io/hw01-fireball/)
+
+![Ice](./fireball2.gif)
+![Ice](./fireball.gif)
+
+## Descriptions
+
+I made a fire ball based on the decription of the writeup by using a combination of sinuaduol waves to generate some bumpings of the balls. And using high frequency FBM to generate some small bumpings on the surface. Here, I used the 2D FBM instead of 3D since the whole surface should be a 2D object. I used spherical coordinates for FBM with togother of spherical interpolation (slerp) instead of standard lerp. 
+
+For color on surface, I interpolate color based on height of the surface in piecewise function of 5 to 6 colors. I used bias function, easein, easeout and sin/cos function in various degrees in order to archive better animation. 
+
+For background, I added different layers of transparent (same color) wave (in the same shape as the center ball) to add effect of glowing. Here, I animated it in the same glsl file by just repeatedly call drawing for the same shader. Effect of 3D glowing:
+
+![Ice](./fireball.gif)
+
+In addition to the glowing, the background 2D fire is generated using snoise which I adapted from https://www.shadertoy.com/view/lsf3RH. I changed the size and color interpolation method in order to fit my project. I also added glowing star effect in the background using jittered random function. 
+
+![Ice](./fireball2.gif)
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
