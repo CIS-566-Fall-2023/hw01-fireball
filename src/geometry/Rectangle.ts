@@ -2,7 +2,7 @@ import {vec3, vec4} from 'gl-matrix';
 import Drawable from '../rendering/gl/Drawable';
 import {gl} from '../globals';
 
-class Square extends Drawable {
+class Rectangle extends Drawable {
   indices: Uint32Array;
   positions: Float32Array;
   normals: Float32Array;
@@ -21,10 +21,10 @@ class Square extends Drawable {
                                    0, 0, 1, 0,
                                    0, 0, 1, 0,
                                    0, 0, 1, 0]);
-  this.positions = new Float32Array([-1, -1, 0, 1,
-                                     1, -1, 0, 1,
-                                     1, 1, 0, 1,
-                                     -1, 1, 0, 1]);
+  this.positions = new Float32Array([-5, -5, 0, 1,
+                                     5, -5, 0, 1,
+                                     5, 5, 0, 1,
+                                     -5, 5, 0, 1]);
 
     this.generateIdx();
     this.generatePos();
@@ -40,8 +40,8 @@ class Square extends Drawable {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
     gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
 
-    console.log(`Created square`);
+    console.log(`Created rectangle`);
   }
 };
 
-export default Square;
+export default Rectangle;

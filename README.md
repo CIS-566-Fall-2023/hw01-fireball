@@ -1,5 +1,30 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Claire Lu
+
+For my fireball, I decided to create a fireball character. I used fbm and worley noise to create the shape of the flame. 
+I stretched the flame upwards by scaling the y position of the vertex positions. I also used the sawtooth noise function
+to make the flames flicker more drastically and used the ease in function to smooth out the motion of the flames. 
+I used the bias function so that the flickering would happen more at the tail, and the power curve to vary the flickering.
+
+You can change the color, speed, and tesselations of the fireball character!
+
+[Live Demo](https://clairel21.github.io/hw01-fireball/)
+
+<img width="426" alt="thumb" src="https://github.com/ClaireL21/hw01-fireball/assets/102630261/9c597700-6204-4d8a-91a3-83174025ed0d">
+
+
+<img width="358" alt="flame var 6" src="https://github.com/ClaireL21/hw01-fireball/assets/102630261/b014d253-93d1-4ac1-8b05-98a45f1cc8e7">
+
+<img width="385" alt="tes3" src="https://github.com/ClaireL21/hw01-fireball/assets/102630261/83062bb1-b456-4e41-aea7-c71bbb78da07">
+
+<img width="315" alt="flame var 1" src="https://github.com/ClaireL21/hw01-fireball/assets/102630261/5b266e8e-8aaa-414d-bcae-9007c5c49e10">
+
+<img width="343" alt="flame var 2" src="https://github.com/ClaireL21/hw01-fireball/assets/102630261/0e005f6d-be8f-473e-943a-344ad992b818">
+
+<img width="352" alt="flame var 5" src="https://github.com/ClaireL21/hw01-fireball/assets/102630261/91ee3a50-5d7e-4f36-bfdc-4446ec96f4ec">
+
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
