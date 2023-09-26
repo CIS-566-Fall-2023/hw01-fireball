@@ -1,7 +1,9 @@
 {
   "scripts": {
     "start": "webpack-dev-server --no-hot --live-reload",
-    "build": "webpack"
+    "build": "webpack",
+    "lint": "eslint . --report-unused-disable-directives",
+    "format": "prettier . -w"
   },
   "devDependencies": {
     "@types/dat.gui": "^0.7.7",
