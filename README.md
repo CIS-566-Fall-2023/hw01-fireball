@@ -1,5 +1,35 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Submission | Aboudi Rai
+
+### Noise Generation
+<p>
+Both the high-amplitude low-frequency noise and low-amplitude high-frequency noise are generated and
+applied to the sphere in `fire-vert.glsl`.
+
+The fragment shader applies a gradient of colors that can be selected from the GUI, and applies
+these noise gradients in `fire-frag.glsl`. The noise is generated using FBM with Perlin Noise.
+
+Both noise implementations are animated with respect to time.
+
+The four toolbox functions used are:
+- **sin()** for the oscillaing displacement on the fireball's surface
+- **mix** (aka lerp) for the gradient effect on the fireball's surface and for the flickering background
+- **smoothstep()** for smoothing out the displacement oscillations
+- **bias()** for biasing the animation cycle of the low-freq displacement
+</p>
+
+### Interactivity
+- Color: a dropdown giving the user the option to select from predetermined gradient styles
+- Flame Intensity: The speed with which the flames roil on the fireball's surface
+- Angular Velocity: The angular velocity which which the fireball orbits around its axis.
+- Reset: reset all values
+
+### Spice
+- Background Flickering Effect: I've used trigonometric along with lerp to create a flickering light
+  in the background which corresponds to the color selected by the user.
+
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
