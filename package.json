@@ -1,10 +1,21 @@
 {
   "scripts": {
     "start": "webpack-dev-server --no-hot --live-reload",
-    "build": "webpack"
+    "build": "webpack",
+    "lint": "eslint . --report-unused-disable-directives",
+    "format": "prettier . -w"
   },
   "devDependencies": {
+    "@types/dat.gui": "^0.7.7",
     "@types/webgl2": "0.0.6",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "eslint": "^8.49.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^17.1.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "prettier": "^3.0.3",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.2",
     "webpack": "^5.52.0",
@@ -14,6 +25,8 @@
   },
   "dependencies": {
     "3d-view-controls": "^2.2.2",
-    "gl-matrix": "^3.3.0"
+    "gl-matrix": "^3.3.0",
+    "stats-js": "^1.0.1",
+    "dat.gui": "^0.7.7"
   }
 }

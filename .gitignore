@@ -60,5 +60,8 @@ typings/
 # next.js build output
 .next
 
-dist/bundle.js
-dist/bundle.js.map
+dist/*
+!dist/index.html
+
+.vscode/*
+!.vscode/extensions.json
