@@ -1,4 +1,20 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+## Description
+
+The vertex shader applies a displacement of the sphere utilizing sin functions combined with the toolboxes functions of impulse, gain, and sawtooth_wave. It also utilizes perlinNoise for a bit of variation. Then a layer of fractal Brownian motion is applied on top of this to add a finer level of distortion. The fbm also utilizes impulse. The fragment shader uses this displacement to lerp (using mix) between two different colors which the user is able to set. The fragment also uses bias and gain to modify the displacement value slightly for a more interesting gradient of color. Both shaders utilize a uniform time variable to alter their outputs.
+
+The amplitude and the frequency values of the fbm noise can be adjusted using the sliders in the dat.GUI. In addition, there are controllers that allow the user to adjust both colors, as well as the ability to swap the two. The gui also has a button to reset the values to their original values.
+
+The background of the scene has been modified using perlin noise to give the fireball a more interesting backdrop.
+
+## Screenshots
+![Screenshot (238)](https://github.com/hansen-yi/hw01-fireball/assets/97490525/127a6dd5-3642-4ca3-84a9-925cfaf6e30d)
+![Screenshot (241)](https://github.com/hansen-yi/hw01-fireball/assets/97490525/59a270bb-436f-4e43-9c9d-9b174c64f0c8)
+![Screenshot (236)](https://github.com/hansen-yi/hw01-fireball/assets/97490525/e5d66582-78a6-4571-8050-21bab56d8aa8)
+
+
+## Live Demo
+https://hansen-yi.github.io/hw01-fireball/
 
 ## Objective
 
