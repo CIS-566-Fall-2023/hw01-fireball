@@ -61,6 +61,7 @@ typings/
 .next
 
 dist/*
+!dist/index.html
 
 .vscode/*
 !.vscode/extensions.json

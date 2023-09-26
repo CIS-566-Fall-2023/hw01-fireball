@@ -1,5 +1,19 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+# Submission - Thomas Shaw
+
+![](./readme_assets/fireball_space.png)
+
+### [Live demo](https://printer83mph.github.io/cis5660-hw01-fireball/)
+
+For this homework, I took inspiration from one of my most recent favorite games, Outer Wilds, and specifically the comet in an elliptical orbit around the sun known as [The Interloper](https://static.wikia.nocookie.net/outerwilds_gamepedia/images/7/7c/The_Interloper.png/revision/latest?cb=20190718011901). One thing that bugged me about its representation in-game is that I never felt convinced that it was hurtling through space. It didn't really use any fancy shader effects to create a sense of movement, only a general shape. Therefore one of my goals would be to implement moving fire in a convincing way using noise functions.
+
+My first thought was to somehow store lifetimes of particles as they moved up the fireball, but that was structurally impossible in a shader which doesn't keep track of state between frames (unless I added that to the CPU side but no way was I doing that). Instead I opted for a similar approach to the [flower](https://www.shadertoy.com/view/mtBfDd) Yuhan and I made in lab 1. Similar to a [shephard tone](https://en.wikipedia.org/wiki/Shepard_tone), there are multiple noise samples whose coordinates are all constantly rising on the y-axis, but starting and ending faded out (in terms of intensity). There was some tricky math involved in blending between these noise functions procedurally over time, requiring some simplified `triangle wave`s and `smoothstep`ing, but I think it ended up quite nice (and can be parameterized as well).
+
+To get the blobby shape i wanted, I sampled the "intensity" of the flames, `mix`ed with a number in the range 0 to 1 where 0 is the front of the flame and 1 is the back. The splotch at the front of the comet favors the position stronger, while the splotches in the middle/back more heavily favor the noise, making them more sporadic and wobbly.
+
+I wanted to make it clear this was space, so I plopped in a super-scaled-up cube, normalized its `fs_Pos` coordinates to get texture coordinates all on a sphere, and used voronoi `jitter`ing to get stars all around the comet. I also added a time-based rotation to make the comet "spin".
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
