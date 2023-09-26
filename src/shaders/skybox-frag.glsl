@@ -16,6 +16,7 @@ precision highp float;
 
 uniform vec4 u_CamPos; // position of the camera in world space
 uniform vec4 u_Color;  // The color with which to render this instance of geometry.
+uniform float u_Time;
 
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
@@ -105,7 +106,56 @@ float cnoise(vec3 P){
   return 2.2 * n_xyz;
 }
 
-// --------- --------- --------- TONEMAPPING --------- --------- ---------
+// source: https://github.com/MaxBittker/glsl-voronoi-noise/blob/master/3d.glsl
+// by MaxBittker
+
+const mat2 myt = mat2(.12121212, .13131313, -.13131313, .12121212);
+const vec2 mys = vec2(1e4, 1e6);
+
+vec2 rhash(vec2 uv) {
+  uv *= myt;
+  uv *= mys;
+  return fract(fract(uv / mys) * uv);
+}
+
+vec3 hash(vec3 p) {
+  return fract(
+      sin(vec3(dot(p, vec3(1.0, 57.0, 113.0)), dot(p, vec3(57.0, 113.0, 1.0)),
+               dot(p, vec3(113.0, 1.0, 57.0)))) *
+      43758.5453);
+}
+
+vec3 voronoi3d(const in vec3 x) {
+  vec3 p = floor(x);
+  vec3 f = fract(x);
+
+  float id = 0.0;
+  vec2 res = vec2(100.0);
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        vec3 b = vec3(float(i), float(j), float(k));
+        vec3 r = vec3(b) - f + hash(p + b);
+        float d = dot(r, r);
+
+        float cond = max(sign(res.x - d), 0.0);
+        float nCond = 1.0 - cond;
+
+        float cond2 = nCond * max(sign(res.y - d), 0.0);
+        float nCond2 = 1.0 - cond2;
+
+        id = (dot(p + b, vec3(1.0, 57.0, 113.0)) * cond) + (id * nCond);
+        res = vec2(d, res.x) * cond + res * nCond;
+
+        res.y = cond2 * d + nCond2 * res.y;
+      }
+    }
+  }
+
+  return vec3(sqrt(res), abs(id));
+}
+
+// --------- --------- --------- ACTUAL CODE --------- --------- ---------
 
 vec3 reinhardJodie(vec3 color) {
     float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
@@ -117,28 +167,37 @@ vec3 gammaCorrect(vec3 linearColor) {
     return pow(linearColor, vec3(INV_GAMMA));
 }
 
-// --------- --------- --------- ACTUAL CODE --------- --------- ---------
+mat3 rotateY(float angle) {
+    float c = cos(angle);
+    float s = sin(angle);
+    return mat3(
+        vec3(c, 0, s),
+        vec3(0, 1, 0),
+        vec3(-s, 0, c)
+    );
+}
 
 void main()
 {
-    float bottomWeight = dot(vec3(0, -.4, 0), fs_Pos.xyz);
-    bottomWeight = (bottomWeight + 1.) * 0.5;
-    bottomWeight *= bottomWeight;
+    vec3 finalLinearColor = vec3(0, 0, 0);
 
-    vec3 finalLinearColor = mix(u_Color.rgb, vec3(0.1, 0.05, 0.05), 0.65);
+    vec3 texCoord = fs_Pos.xyz;
+    texCoord = normalize(texCoord);
+    texCoord = rotateY(u_Time * 0.02) * texCoord;
 
-    // front section
-    if (mix(bottomWeight, fs_Lifetime * 8., 0.15) > 0.7)
+    float dist = voronoi3d(texCoord * 40.).x;
+    
+    if (dist < 0.06)
     {
-        finalLinearColor = mix(u_Color.rgb, vec3(4, 4, 5), 0.1);
+        finalLinearColor = vec3(.4);
     }
-    else if (mix(bottomWeight, fs_Lifetime * 8., 0.3) > 0.6)
+
+    texCoord *= 1.3;
+    dist = voronoi3d(texCoord * 20.).x;
+    
+    if (dist < 0.06)
     {
-        finalLinearColor = mix(u_Color.rgb, vec3(2.), 0.1);
-    }
-    else if (mix(bottomWeight, fs_Lifetime * 8. * fs_Intensity, 0.4) > 0.35)
-    {
-        finalLinearColor = mix(u_Color.rgb, vec3(0.1, 0.05, 0.05), 0.4);
+        finalLinearColor = vec3(20.);
     }
 
     // Compute final shaded color

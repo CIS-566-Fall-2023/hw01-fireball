@@ -4,6 +4,7 @@ import Stats from 'stats-js';
 
 import Camera from './Camera';
 import { GAMMA } from './constants';
+import Cube from './geometry/Cube';
 import Icosphere from './geometry/Icosphere';
 import { setGL } from './globals';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
@@ -22,6 +23,7 @@ const controls = {
 };
 
 let icosphere: Icosphere;
+let cube: Cube;
 let gui: DAT.GUI;
 
 let prevTesselations: number = controls.tesselations;
@@ -30,6 +32,8 @@ let prevColor = [0, 0, 0] as [number, number, number];
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
+  cube = new Cube(vec3.fromValues(0, 0, 0));
+  cube.create();
 }
 
 function resetParams() {
@@ -84,11 +88,17 @@ function main() {
   renderer.setStartTime(Date.now());
   gl.enable(gl.DEPTH_TEST);
 
-  const fancyShader = new ShaderProgram([
+  const fireShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/fire-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fire-frag.glsl')),
   ]);
-  fancyShader.setGeometryColor([1, 0, 0, 1]);
+  fireShader.setGeometryColor([1, 0, 0, 1]);
+
+  const skyboxShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/skybox-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/skybox-frag.glsl')),
+  ]);
+  skyboxShader.setGeometryColor([1, 1, 1, 1]);
 
   // This function will be called every frame
   function tick() {
@@ -109,12 +119,13 @@ function main() {
         newColor[component] **= GAMMA;
       }
       newColor[3] = 1;
-      fancyShader.setGeometryColor(newColor);
+      fireShader.setGeometryColor(newColor);
     }
-    fancyShader.setFbmIntensity(controls['fbm intensity']);
-    fancyShader.setNoiseScrollSpeed(controls['noise scroll speed']);
-    fancyShader.setTailLength(controls['tail length']);
-    renderer.render(camera, fancyShader, [icosphere]);
+    fireShader.setFbmIntensity(controls['fbm intensity']);
+    fireShader.setNoiseScrollSpeed(controls['noise scroll speed']);
+    fireShader.setTailLength(controls['tail length']);
+    renderer.render(camera, skyboxShader, [cube]);
+    renderer.render(camera, fireShader, [icosphere]);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
