@@ -21,8 +21,9 @@ uniform vec4 u_Color;  // The color with which to render this instance of geomet
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Pos;
 in vec4 fs_Nor;
-in vec4 fs_LightVec;
 in vec4 fs_Col;
+in float fs_Lifetime;
+in float fs_Intensity;
 
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
@@ -121,25 +122,26 @@ vec3 gammaCorrect(vec3 linearColor) {
 
 void main()
 {
-    // Material base color (before shading)
-        vec4 diffuseColor = u_Color;
+    float bottomWeight = dot(vec3(0, -.4, 0), fs_Pos.xyz);
+    bottomWeight = (bottomWeight + 1.) * 0.5;
+    bottomWeight *= bottomWeight;
 
-        float noise = (cnoise(fs_Pos.xyz * 4.) + 1.) * 0.5;
-        noise = 1. - min(noise, -noise + 1.) * 2.;
+    vec3 finalLinearColor = mix(u_Color.rgb, vec3(0.1, 0.05, 0.05), 0.65);
 
-        diffuseColor.rgb *= mix(0.4, 1.0, noise);
-        float shininess = mix(SHININESS_MIN, SHININESS_MAX, noise);
+    // front section
+    if (mix(bottomWeight, fs_Lifetime * 8., 0.15) > 0.7)
+    {
+        finalLinearColor = mix(u_Color.rgb, vec3(4, 4, 5), 0.1);
+    }
+    else if (mix(bottomWeight, fs_Lifetime * 8., 0.3) > 0.6)
+    {
+        finalLinearColor = mix(u_Color.rgb, vec3(2.), 0.1);
+    }
+    else if (mix(bottomWeight, fs_Lifetime * 8. * fs_Intensity, 0.4) > 0.35)
+    {
+        finalLinearColor = mix(u_Color.rgb, vec3(0.1, 0.05, 0.05), 0.4);
+    }
 
-        // Calculate the diffuse term for Lambert shading
-        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-        // Remap to half-lambert shading
-        float halfLambert = (diffuseTerm + 1.) * 0.5 * 0.4;
-
-        // fixed ambient term
-        vec3 ambientTerm = vec3(.1);
-
-        vec3 finalLinearColor = ambientTerm + halfLambert;
-
-        // Compute final shaded color
-        out_Col = vec4(gammaCorrect(reinhardJodie(finalLinearColor)), diffuseColor.a);
+    // Compute final shaded color
+    out_Col = vec4(gammaCorrect(reinhardJodie(finalLinearColor)), u_Color.a);
 }

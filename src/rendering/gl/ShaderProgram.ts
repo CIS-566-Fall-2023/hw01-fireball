@@ -33,6 +33,9 @@ class ShaderProgram {
   unifCamPos: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
+  unifFbmIntensity: WebGLUniformLocation;
+  unifNoiseScrollSpeed: WebGLUniformLocation;
+  unifTailLength: WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -54,6 +57,12 @@ class ShaderProgram {
     this.unifCamPos = gl.getUniformLocation(this.prog, 'u_CamPos');
     this.unifColor = gl.getUniformLocation(this.prog, 'u_Color');
     this.unifTime = gl.getUniformLocation(this.prog, 'u_Time');
+    this.unifFbmIntensity = gl.getUniformLocation(this.prog, 'u_FbmIntensity');
+    this.unifNoiseScrollSpeed = gl.getUniformLocation(
+      this.prog,
+      'u_NoiseScrollSpeed',
+    );
+    this.unifTailLength = gl.getUniformLocation(this.prog, 'u_TailLength');
   }
 
   use() {
@@ -102,6 +111,27 @@ class ShaderProgram {
     this.use();
     if (this.unifTime !== -1) {
       gl.uniform1f(this.unifTime, time);
+    }
+  }
+
+  setFbmIntensity(intensity: number) {
+    this.use();
+    if (this.unifFbmIntensity !== -1) {
+      gl.uniform1f(this.unifFbmIntensity, intensity);
+    }
+  }
+
+  setNoiseScrollSpeed(scale: number) {
+    this.use();
+    if (this.unifNoiseScrollSpeed !== -1) {
+      gl.uniform1f(this.unifNoiseScrollSpeed, scale);
+    }
+  }
+
+  setTailLength(length: number) {
+    this.use();
+    if (this.unifTailLength !== -1) {
+      gl.uniform1f(this.unifTailLength, length);
     }
   }
 

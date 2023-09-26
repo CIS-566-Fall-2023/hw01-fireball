@@ -4,7 +4,6 @@ import Stats from 'stats-js';
 
 import Camera from './Camera';
 import { GAMMA } from './constants';
-import Cube from './geometry/Cube';
 import Icosphere from './geometry/Icosphere';
 import { setGL } from './globals';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
@@ -14,13 +13,16 @@ import ShaderProgram, { Shader } from './rendering/gl/ShaderProgram';
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   tesselations: 5,
-  color: [52, 100, 63] as [number, number, number],
   'Load Scene': loadScene, // A function pointer, essentially
-  object: 'icosphere',
+  color: [146, 245, 5] as [number, number, number],
+  'fbm intensity': 0.2,
+  'noise scroll speed': 1,
+  'tail length': 1,
+  'Reset Parameters': resetParams, // A function pointer, essentially
 };
 
 let icosphere: Icosphere;
-let cube: Cube;
+let gui: DAT.GUI;
 
 let prevTesselations: number = controls.tesselations;
 let prevColor = [0, 0, 0] as [number, number, number];
@@ -28,8 +30,18 @@ let prevColor = [0, 0, 0] as [number, number, number];
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
-  cube = new Cube(vec3.fromValues(0, 0, 0));
-  cube.create();
+}
+
+function resetParams() {
+  controls.color = [146, 245, 5];
+  controls['fbm intensity'] = 0.2;
+  controls['noise scroll speed'] = 1;
+  controls['tail length'] = 1;
+
+  // eslint-disable-next-line no-underscore-dangle
+  gui.__controllers.forEach((controller) => {
+    controller.updateDisplay();
+  });
 }
 
 function main() {
@@ -42,11 +54,14 @@ function main() {
   document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  const gui = new DAT.GUI();
+  gui = new DAT.GUI();
   gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.add(controls, 'Load Scene');
-  gui.add(controls, 'object').options(['cube', 'icosphere']);
   gui.addColor(controls, 'color');
+  gui.add(controls, 'fbm intensity', 0, 1);
+  gui.add(controls, 'noise scroll speed', 0, 2);
+  gui.add(controls, 'tail length', 0.5, 1.5);
+  gui.add(controls, 'Reset Parameters');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement>document.getElementById('canvas');
@@ -96,9 +111,10 @@ function main() {
       newColor[3] = 1;
       fancyShader.setGeometryColor(newColor);
     }
-    renderer.render(camera, fancyShader, [
-      controls.object === 'cube' ? cube : icosphere,
-    ]);
+    fancyShader.setFbmIntensity(controls['fbm intensity']);
+    fancyShader.setNoiseScrollSpeed(controls['noise scroll speed']);
+    fancyShader.setTailLength(controls['tail length']);
+    renderer.render(camera, fancyShader, [icosphere]);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
