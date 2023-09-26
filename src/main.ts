@@ -1,93 +1,109 @@
-import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+import {vec3, vec4} from 'gl-matrix';
+import * as DAT from 'dat.gui';
+import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
+import Cube from './geometry/Cube';
+
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 
-// Define an object with application parameters and button callbacks
-// This will be referred to by dat.GUI's functions that add GUI elements.
+let time = 0.0;
+let magic = false;
+
 const controls = {
-  tesselations: 5,
-  'Load Scene': loadScene, // A function pointer, essentially
+  Speed: 0.4,
+  Tail_Size: 4.0,
+  Main_Color: [ 255, 0, 0 ],
+  Middle_Color: [ 255, 178.5, 0 ],
+  Front_Color: [ 0, 0, 255 ],
+  'Magic Meteor': magicMedeor,
+  'Restore Defaults': restoreDefaults,
 };
 
+let icosphere: Icosphere;
 let square: Square;
-let time: number = 0;
+let cube: Cube;
 
 function loadScene() {
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, 5);
+  icosphere.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
-  // time = 0;
+  cube = new Cube(vec3.fromValues(0, 0, 0));
+  cube.create();
+}
+
+function magicMedeor() {
+  magic = !magic;
+  if(magic){
+    controls.Main_Color = [ 255, 0, 255 ];
+    controls.Middle_Color = [ 76.5, 0, 255 ];
+    controls.Front_Color = [ 0, 255, 0 ];
+  } else {
+    controls.Main_Color = [ 255, 0, 0 ];
+    controls.Middle_Color = [ 255, 178.5, 0 ];
+    controls.Front_Color = [ 0, 0, 255 ];
+  }
+}
+
+function restoreDefaults() {
+  controls.Speed = 0.4;
+  controls.Tail_Size = 4.0;
+  magic = false;
+  controls.Main_Color = [ 255, 0, 0 ];
+  controls.Middle_Color = [ 255, 178.5, 0 ];
+  controls.Front_Color = [ 0, 0, 255 ];
 }
 
 function main() {
-  window.addEventListener('keypress', function (e) {
-    // console.log(e.key);
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
+  const gui = new DAT.GUI();
+  gui.add(controls, 'Speed', 0.025, 0.5).step(0.005).name("Meteor Speed");
+  gui.add(controls, 'Tail_Size', 2.0, 10.0).step(1).name("Tail Size");
+  gui.addColor(controls, 'Main_Color').name("Main Color");
+  gui.addColor(controls, 'Middle_Color').name("Middle Color");
+  gui.addColor(controls, 'Front_Color').name("Tip/Front Detail Color");
+  gui.add(controls, 'Magic Meteor');
+  gui.add(controls, 'Restore Defaults');
 
-  window.addEventListener('keyup', function (e) {
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
-  // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
-
-  // Add controls to the gui
-  // const gui = new DAT.GUI();
-
-  // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
   const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');
   if (!gl) {
     alert('WebGL 2 not supported!');
   }
-  // `setGL` is a function imported above which sets the value of `gl` in the `globals.ts` module.
-  // Later, we can import `gl` from `globals.ts` to access it
   setGL(gl);
 
-  // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
+  renderer.setClearColor(0.1, 0.1, 0.1, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const flat = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fire-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fire-frag.glsl')),
   ]);
-
-  function processKeyPresses() {
-    // Use this if you wish
-  }
-
+  
   // This function will be called every frame
   function tick() {
     camera.update();
-    // stats.begin();
+    time = time + 1.0;
+
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    processKeyPresses();
-    renderer.render(camera, flat, [
-      square,
-    ], time);
-    time++;
-    // stats.end();
+    renderer.render(camera, lambert, 
+      [icosphere],
+      time,
+      controls.Speed,
+      controls.Tail_Size,
+      magic,
+      vec4.fromValues(controls.Main_Color[0]/255.0,controls.Main_Color[1]/255.0,controls.Main_Color[2]/255.0,1),
+      vec4.fromValues(controls.Middle_Color[0]/255.0,controls.Middle_Color[1]/255.0,controls.Middle_Color[2]/255.0,1),
+      vec4.fromValues(controls.Front_Color[0]/255.0,controls.Front_Color[1]/255.0,controls.Front_Color[2]/255.0,1),
+    );
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
@@ -97,13 +113,11 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
 
   // Start the render loop
   tick();

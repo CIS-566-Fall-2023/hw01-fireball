@@ -1,5 +1,18 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Submission
+Kyra Clark (ckyra)
+
+[Fireball METEOR Live Demo](https://kyrasclark.github.io/hw01-fireball/)
+
+For the vertex shader, I used FBM noise to create the distortion. Then, I used [TOOLBOX FUNCTION 1] a **sawtooth wave** to create the movement around the fireball. Finally, I add a time element to the sawtooth wave to animate the fireball
+
+For the fragment shader, I use [TOOLBOX FUNCTION 2] a **smoothstep** to blend between the colors of the fireball. However, I use a [TOOLBOX FUNCTION 3] **bias function** to limit the amount of blue on the fire. Then, I use [TOOLBOX FUNCTION 4] **triangle wave** function to animate the color of the fireball, as the comet enters the atmosphere. The wave function oscillates with time to animate. 
+
+The user has access to several buttons to control the fireball. First, you can control the speed of the meteor. It will default to a fairly fast meteor, zooming through space, but the user can click a slower speed to see the meteor in slow mo. Next, the user can control the size of the tail of the meteor. It will default to a medium size tail, but the user can increase or decrease this size using the slider. Then, the user has access to three colors that will control the three color sections of the meteor. The first color controls the main body and tail of the fireball, the second controls the middle section, and the final color controls the very tip of the flame at the front of the meteor. Finally, there is a button that will turn the normal meteor into a ~ _magic meteor_ ~, bringing aliens or fairies or dragons to earth probably. 
+
+The restore button should turn off any magic, and restore the speed, size, and color of the meteor. Note that this button, does not reset the GUI, but does control the internal variables.
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
