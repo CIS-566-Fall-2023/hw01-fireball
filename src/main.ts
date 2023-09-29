@@ -1,112 +1,236 @@
-import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
-import Square from './geometry/Square';
-import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
-import Camera from './Camera';
-import {setGL} from './globals';
-import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
+// @ts-ignore
+import * as DAT from "dat.gui"
+const Stats = require("stats-js")
 
-// Define an object with application parameters and button callbacks
-// This will be referred to by dat.GUI's functions that add GUI elements.
-const controls = {
-  tesselations: 5,
-  'Load Scene': loadScene, // A function pointer, essentially
-};
+const vert = require("./shaders/fireball.vs.glsl")
+const frag = require("./shaders/fireball.fs.glsl")
+const fragEnv = require("./shaders/envMap.fs.glsl")
 
-let square: Square;
-let time: number = 0;
+// Matcaps
+const flame = require("../public/static/textures/matcaps/flame.jpg").default
+const redhalo = require("../public/static/textures/matcaps/redhalo.png").default
+const blackhole = require("../public/static/textures/matcaps/void.png").default
 
-function loadScene() {
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
-  // time = 0;
+// Texture used
+const textureLoader = new THREE.TextureLoader()
+const matcapTexture = textureLoader.load(redhalo)
+const envTexture = textureLoader.load(blackhole)
+
+// Controllable parameters
+const parameters = {
+  radius: 1, // Radius of the sphere
+  subdivision: 512, // Subdivision of the sphere
+  basecolor: "#000000", // Base color of the sphere
+}
+
+// Uniform variables on the shader
+const uniforms = {
+  uTime: { value: 0.0 },
+  uColor: { value: new THREE.Color(0xffffff) },
+  uTexture: { value: matcapTexture },
+  uEnvTexture: { value: envTexture },
+  uNoiseParams: { value: new THREE.Vector4(1, 0.1, 1.8, 0.07) },
+  uEnvNoiseParams: { value: new THREE.Vector4(1.0, 0.1, 0.1, -0.1) },
 }
 
 function main() {
-  window.addEventListener('keypress', function (e) {
-    // console.log(e.key);
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
+  // getting the canvas DOM element from our html
+  const canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement
 
-  window.addEventListener('keyup', function (e) {
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
+  // Screen dimension
+  const screen = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }
+
+  // Cursor position
+  const cursor = {
+    x: 0,
+    y: 0,
+  }
+
+  window.addEventListener("mousemove", (event) => {
+    cursor.x = event.clientX / screen.width - 0.5 // -0.5 to 0.5
+    cursor.y = -(event.clientY / screen.height - 0.5)
+  })
 
   // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
+  const stats = Stats()
+  stats.setMode(0)
+  stats.domElement.style.position = "absolute"
+  stats.domElement.style.left = "0px"
+  stats.domElement.style.top = "0px"
+  document.body.appendChild(stats.domElement)
 
-  // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const scene = new THREE.Scene()
 
-  // get canvas and webgl context
-  const canvas = <HTMLCanvasElement> document.getElementById('canvas');
-  const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');
-  if (!gl) {
-    alert('WebGL 2 not supported!');
-  }
-  // `setGL` is a function imported above which sets the value of `gl` in the `globals.ts` module.
-  // Later, we can import `gl` from `globals.ts` to access it
-  setGL(gl);
+  // // matcap material, override later for shader
+  // const matcap = new THREE.MeshMatcapMaterial()
+  // matcap.matcap = matcapTexture
 
-  // Initial call to load scene
-  loadScene();
+  // Material for fireball
+  const fireball = new THREE.ShaderMaterial({
+    vertexShader: vert,
+    fragmentShader: frag,
+    uniforms: uniforms,
+    side: THREE.DoubleSide,
+  })
 
-  const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
+  // Material for envmap
+  const env = new THREE.ShaderMaterial({
+    vertexShader: vert,
+    fragmentShader: fragEnv,
+    uniforms: uniforms,
+    side: THREE.BackSide, // render the inside of the sphere
+  })
 
-  const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
-  gl.enable(gl.DEPTH_TEST);
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(
+      parameters.radius,
+      parameters.subdivision * 2,
+      parameters.subdivision
+    ),
+    fireball
+  )
 
-  const flat = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
-  ]);
+  const envMap = new THREE.Mesh(new THREE.SphereGeometry(50, 32, 16), env)
 
-  function processKeyPresses() {
-    // Use this if you wish
-  }
+  scene.add(mesh)
+  scene.add(envMap)
+
+  // Add GUI elements
+  const gui = new DAT.GUI()
+  gui
+    .add(parameters, "radius", 0, 2)
+    .name("Radius")
+    .onChange(() => {
+      mesh.geometry = new THREE.SphereGeometry(
+        parameters.radius,
+        parameters.subdivision * 2,
+        parameters.subdivision
+      )
+    })
+
+  gui
+    .add(parameters, "subdivision", 64, 1024, 1)
+    .name("Width Segments")
+    .onChange(() => {
+      mesh.geometry = new THREE.SphereGeometry(
+        parameters.radius,
+        parameters.subdivision * 2,
+        parameters.subdivision
+      )
+    })
+
+  // noise parameters
+  const noiseParams = gui.addFolder("Noise Parameters")
+  noiseParams.add(uniforms.uNoiseParams.value, "y", 0.1, 0.8).name("Amplitude")
+  noiseParams.add(uniforms.uNoiseParams.value, "z", 1.5, 4).name("Frequency")
+  noiseParams.add(uniforms.uNoiseParams.value, "x", 1, 2, 1).name("Octave")
+  noiseParams
+    .add(uniforms.uNoiseParams.value, "w", -0.1, 0.2)
+    .name("Height Offset")
+
+  gui
+    .addColor(parameters, "basecolor")
+    .name("Backgrond Color (Rec: go darkness)")
+
+  // button that will reset the parameters to their default values
+  gui
+    .add({ reset: () => {} }, "reset")
+    .name("Reset")
+    .onChange(() => {
+      parameters.basecolor = "#000000"
+      parameters.radius = 1
+      parameters.subdivision = 512
+
+      noiseParams.__controllers[0].setValue(0.1)
+      noiseParams.__controllers[1].setValue(2.0)
+      noiseParams.__controllers[2].setValue(2.0)
+      noiseParams.__controllers[3].setValue(0.05)
+
+      mesh.geometry = new THREE.SphereGeometry(
+        parameters.radius,
+        parameters.subdivision * 2,
+        parameters.subdivision
+      )
+      // mesh.material.color.set(parameters.basecolor)
+    })
+
+  // perspective camera
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    screen.width / screen.height,
+    0.1,
+    100
+  )
+  camera.position.z = 3
+  scene.add(camera)
+
+  // Controls
+  const controls = new OrbitControls(camera, canvas)
+  controls.enableDamping = true
+
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas })
+  renderer.setSize(screen.width, screen.height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+  // Clock in Three.js
+  const clock = new THREE.Clock()
 
   // This function will be called every frame
   function tick() {
-    camera.update();
-    // stats.begin();
-    gl.viewport(0, 0, window.innerWidth, window.innerHeight);
-    renderer.clear();
-    processKeyPresses();
-    renderer.render(camera, flat, [
-      square,
-    ], time);
-    time++;
-    // stats.end();
+    // update time uniform
+    const elapsedTime = clock.getElapsedTime()
+
+    stats.begin()
+    // update material
+    fireball.uniforms.uTime.value = elapsedTime
+    fireball.uniforms.uColor.value = new THREE.Color(parameters.basecolor)
+
+    controls.update()
+
+    renderer.clear()
+    renderer.render(scene, camera)
+
+    stats.end()
 
     // Tell the browser to call `tick` again whenever it renders a new frame
-    requestAnimationFrame(tick);
+    requestAnimationFrame(tick)
   }
 
-  window.addEventListener('resize', function() {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.setAspectRatio(window.innerWidth / window.innerHeight);
-    camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
-  }, false);
+  window.addEventListener(
+    "resize",
+    function () {
+      screen.width = window.innerWidth
+      screen.height = window.innerHeight
 
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.setAspectRatio(window.innerWidth / window.innerHeight);
-  camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
+      // Update camera aspect ratio and renderer size
+      camera.aspect = screen.width / screen.height
+      camera.updateProjectionMatrix()
 
+      renderer.setSize(screen.width, screen.height)
+    },
+    false
+  )
+
+  // event listener for fullscreening if F is pressed
+  window.addEventListener("keydown", function (event) {
+    if (event.key === "f") {
+      if (document.fullscreenElement) {
+        document.exitFullscreen()
+      } else {
+        canvas.requestFullscreen()
+      }
+    }
+  })
+
+  renderer.setSize(screen.width, screen.height)
   // Start the render loop
-  tick();
+  tick()
 }
 
-main();
+main()
