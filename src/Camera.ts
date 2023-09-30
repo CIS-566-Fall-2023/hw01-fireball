@@ -19,8 +19,7 @@ class Camera {
       eye: position,
       center: target,
     });
-    vec3.add(this.target, this.position, this.direction);
-    mat4.lookAt(this.viewMatrix, this.controls.eye, this.controls.center, this.controls.up);
+    this.position = position;
   }
 
   setAspectRatio(aspectRatio: number) {
@@ -31,10 +30,21 @@ class Camera {
     mat4.perspective(this.projectionMatrix, this.fovy, this.aspectRatio, this.near, this.far);
   }
 
-  update() {
+  setPosition(position: vec3)
+  {
+    // Calculate the offset between the new camera position and the current camera position.
+    const offset = vec3.fromValues(position[0] - this.position[0], position[1] - this.position[1],  position[2] - this.position[2]);
+
+    this.controls.pan(offset[0], offset[1], offset[2]);
+    this.position = position;
+  }
+
+  update(shakeNoise: vec3) {
     this.controls.tick();
     vec3.add(this.target, this.position, this.direction);
-    mat4.lookAt(this.viewMatrix, this.controls.eye, this.controls.center, this.controls.up);
+    const actualEye = vec3.create();
+    vec3.subtract(actualEye, this.controls.eye, shakeNoise);
+    mat4.lookAt(this.viewMatrix, actualEye , this.controls.center, this.controls.up);
   }
 };
 
