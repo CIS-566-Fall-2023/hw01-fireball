@@ -1,4 +1,10 @@
-# [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+# [Project 1: FIREBOI](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+
+JANKy version of fireboi. I started off by wanting to make Anger from inside out, and then proceeded to wanting to make Wade and realised it was beyond me. And then fell sick and ended up having to think of 
+something I could put together in 1 day. I ended up settling on fireboy and I wanted to preserve that sort of pixel-y microsoft paint look to him,
+hopefully the noise helps to achieve that and his eyes also move with ur mouse which is cool! 
+
+i am out of time and unsure if the deployment works but i will keep updating this readme with details of how i implemented everythng!
 
 ## Objective
 
@@ -19,6 +25,8 @@ Get comfortable with using WebGL and its shaders to generate an interesting 3D, 
     b. Run `npm run build` and then go open `index.html` in your web browser
 
     You should hopefully see the framework code with a 3D cube at the center of the screen!
+
+5. Now to be able to run it with the spotify API, make sure you npm install script-loader. 
 
 
 ## Developing Your Code
