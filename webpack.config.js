@@ -1,5 +1,7 @@
 const path = require('path');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   entry: path.resolve(__dirname, "src/main"),
@@ -19,10 +21,22 @@ module.exports = {
         test: /\.glsl$/,
         loader: 'webpack-glsl-loader'
       },
+      {
+        test: /\.png$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              esModule: false,
+              publicPath: isProduction ? '/hw01-fireball/' : '/',
+            }
+          }
+        ]
+      }
     ]
   },
   resolve: {
-    extensions: ['.ts', '.js' ],
+    extensions: ['.ts', '.js'],
   },
   devtool: 'source-map',
   devServer: {
